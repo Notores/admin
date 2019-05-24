@@ -1,0 +1,7 @@
+{
+  "name": "@notores/admin",
+  "version": "1.0.0",
+  "peerDependencies": {
+    "@notores/core": "^0.2.0"
+  }
+}
