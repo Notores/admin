@@ -1,5 +1,11 @@
 const { getModulesList, getModule } = require("@notores/core/ModuleHandler");
 class AdminRouter {
+    
+    static async dashboard(req, res, next) {
+        res.locals.setBody({});
+        next();
+    }
+
     static async listModules(req, res, next) {
         const modules = getModulesList().map(mod => ({
             name: mod.name,
@@ -23,10 +29,13 @@ class AdminRouter {
     static async listModels(req, res, next) {
         const module = getModule(req.params.module);
         if (module.installed) {
-            const models = Object.keys(module.models).map(key => ({
-                name: module.models[key].modelName,
-                fields: Object.keys(module.models[key].schema)
-            }));
+                const models = Object.keys(module.models).map(key => {
+                return ({
+                    name: module.models[key].modelName,
+                    fields: Object.keys(module.models[key].model.schema)
+                });
+
+            });
             res.locals.setBody({
                 models: models
             });
@@ -35,13 +44,14 @@ class AdminRouter {
                 models: []
             });
         }
+        res.locals.page = 'models';
         next();
     }
 
     static async getModel(req, res, next) {
         const module = getModule(req.params.module);
         if (module.installed && module.models[req.params.model]) {
-            const model = module.models[req.params.model];
+            const model = module.models[req.params.model].model;
             res.locals.setBody({
                 model: {
                     name: model.modelName,
@@ -50,9 +60,9 @@ class AdminRouter {
                             name: "id",
                             type: "ObjectId"
                         },
-                        ...Object.keys(model.schema).map(name => ({
+                        ...Object.keys(model.schema.paths).map(name => ({
                             name,
-                            type: model.paths[name].instance
+                            type: model.schema.paths[name].instance
                         }))
                     ]
                 }
@@ -62,6 +72,7 @@ class AdminRouter {
                 model: null
             });
         }
+        res.locals.page = 'model';
         next();
     }
     static async getModelData(req, res, next) {
